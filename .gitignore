@@ -19,10 +19,8 @@ Thumbs.db
 karate-reports/
 *.html
 *.json
-*.xml
 
 # Maven/Gradle
-pom.xml.versionsBackup
 .gradle/
 build/
 
