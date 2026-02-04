@@ -6,7 +6,8 @@ function fn() {
   }
   var config = {
     env: env,
-    baseUrl: 'https://api-ztrain.onrender.com/'
+    baseUrl: 'https://api-ztrain.onrender.com/',
+    apiUrl: 'https://conduit-api.bondaracademy.com/api/'
   }
   if (env == 'dev') {
     // customize
