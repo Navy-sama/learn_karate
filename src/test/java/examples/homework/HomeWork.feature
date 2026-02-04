@@ -20,7 +20,7 @@ Feature: Home Work
 
         # Step 3: Make POST request to increse favorites count for the first article
         Given path 'users/login'
-        And request {"user":{"email": "yvannouafo29@gmail.com","password":"Azerty1234567"}}
+        And request {"user":{"email": "#(email)","password":"#(password)"}}
         When method post
         Then status 200
         * def authToken = "Token " + response.user.token
@@ -119,7 +119,7 @@ Feature: Home Work
 
         # Step 3: Make a GET call to 'comments' end-point to get all comments
         Given path 'users/login'
-        And request {"user":{"email": "yvannouafo29@gmail.com","password":"Azerty1234567"}}
+        And request {"user":{"email": "#(email)","password":"#(password)"}}
         When method post
         Then status 200
         * def authToken = "Token " + response.user.token

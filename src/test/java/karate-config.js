@@ -7,7 +7,9 @@ function fn() {
   var config = {
     env: env,
     baseUrl: 'https://api-ztrain.onrender.com/',
-    apiUrl: 'https://conduit-api.bondaracademy.com/api/'
+    apiUrl: 'https://conduit-api.bondaracademy.com/api/',
+    email: 'yvannouafo29@gmail.com',
+    password: 'Azerty1234567'
   }
   if (env == 'dev') {
     // customize
