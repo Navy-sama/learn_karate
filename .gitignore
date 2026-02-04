@@ -1,0 +1,30 @@
+# Karate test reports
+target/
+test-output/
+*.log
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Karate specific
+karate-reports/
+*.html
+*.json
+*.xml
+
+# Maven/Gradle
+pom.xml.versionsBackup
+.gradle/
+build/
+
+# Node modules (if using karate-gatling)
+node_modules/
