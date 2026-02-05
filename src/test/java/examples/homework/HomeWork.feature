@@ -1,15 +1,18 @@
 Feature: Home Work
 
     Background: Preconditions
-        * url apiUrl 
+        * url apiUrl
+        * def login = call read('login.feature')
+        * def authToken = "Token " + login.response.user.token
+        * def username = login.response.user.username 
+        * def articles_schema = read('json/article.json')
+        * def comment_schema = read('json/comment.json')
 
+    @str-art
     Scenario: Favorite articles
         # Step 1: Get atricles of the global feed
-        Given path 'articles'
-        And params {'limit': 10, 'offset': 0}
-        When method get
-        Then status 200
-        * def articles = response.articles
+        * def articlesResponse = call read('get_articles.feature')
+        * def articles = articlesResponse.response.articles
         
         
         # Step 2: Get the favorites count and slug ID for the first arice, save it to variables
@@ -19,82 +22,26 @@ Feature: Home Work
 
 
         # Step 3: Make POST request to increse favorites count for the first article
-        Given path 'users/login'
-        And request {"user":{"email": "#(email)","password":"#(password)"}}
-        When method post
-        Then status 200
-        * def authToken = "Token " + response.user.token
-
-        Given path 'articles/' + firstArticleSlug + '/favorite'
-        And header Authorization = authToken
-        And request {}
-        When method post
-        Then status 200
-        * match response.article.slug == firstArticleSlug
+        * def addFavorite = call read('add_favorite.feature') {slug: '#(firstArticleSlug)'} 
+        * def addFavoriteResponse = addFavorite.response
         
 
         # Step 4: Verify response schema
-        * match response == 
-        """
-        {  
-            "article": {
-                "id": "#number",
-                "slug": "#(firstArticleSlug)",
-                "title": "#string",
-                "description": "#string",
-                "body": "#string",
-                "tagList": "#array",
-                "favorited": true,
-                "favoritesCount": "#number",
-                "author": {
-                    "username": "#string",
-                    "bio": "#",
-                    "image": "#string",
-                    "following": "#boolean"
-                },
-                "createdAt": "#string",
-                "updatedAt": "#string"
-            }
-        }
-        """
+        * match addFavoriteResponse == articles_schema
 
 
         # Step 5: Verify that favorites article incremented by 1
-        * def updatedFavCount = response.article.favoritesCount
+        * def updatedFavCount = addFavoriteResponse.article.favoritesCount
         * match updatedFavCount == firstArticleFavCount + 1
 
 
         # Step 6: Get updated articles list and filter for favorited articles
-        Given path 'articles'
-        And params {'limit': 10, 'offset': 0}
-        And header Authorization = authToken
-        When method get
-        Then status 200
-        * def updatedArticles = response.articles
-        * def favoritedArticles = updatedArticles.filter(article => article.favorited == true)
+        * def favoritedArticlesResponse = call read('get_fav_articles.feature') {username: "#(username)"}
+        * def favoritedArticles = favoritedArticlesResponse.response.articles
 
 
         # Step 7: Verify response schema for each favorited article
-        * match each favoritedArticles ==
-        """
-        {  
-            "slug": "#string",
-            "title": "#string",
-            "description": "#string",
-            "body": "#string",
-            "tagList": "#array",
-            "favorited": true,
-            "favoritesCount": "#number",
-            "author": {
-                "username": "#string",
-                "bio": "#",
-                "image": "#string",
-                "following": "#boolean"
-            },
-            "createdAt": "#string",
-            "updatedAt": "#string"
-        }
-        """
+        * match each favoritedArticles == articles_schema.article
 
 
         # Step 8: Verify that slug ID from Step 2 exist in one of the favorite articles
@@ -102,14 +49,11 @@ Feature: Home Work
         * match slugExists == true
 
 
-        
+    @str-comm
     Scenario: Comment articles
         # Step 1: Get atricles of the global feed
-        Given path 'articles'
-        And params {'limit': 10, 'offset': 0}
-        When method get
-        Then status 200
-        * def articles = response.articles
+        * def articlesResponse = call read('get_articles.feature')
+        * def articles = articlesResponse.response.articles
         
         
         # Step 2: Get the slug ID for the first arice, save it to variable
@@ -118,22 +62,12 @@ Feature: Home Work
 
 
         # Step 3: Make a GET call to 'comments' end-point to get all comments
-        Given path 'users/login'
-        And request {"user":{"email": "#(email)","password":"#(password)"}}
-        When method post
-        Then status 200
-        * def authToken = "Token " + response.user.token
-
-
-        Given path 'articles/' + firstArticleSlug + '/comments'
-        * header Authorization = authToken
-        When method get
-        Then status 200
-        * def comments = response.comments
+        * def commentsResponse = call read('get_comments.feature')
 
 
         # Step 4: Verify response schema
-        * match response == {"comments": "#array"}
+        * match commentsResponse.response == {"comments": "#array"}
+        * def comments = commentsResponse.response.comments
 
 
         # Step 5: Get the count of the comments array lentgh and save to variable
@@ -141,41 +75,17 @@ Feature: Home Work
 
 
         # Step 6: Make a POST request to publish a new comment
-        Given path 'articles/' + firstArticleSlug + '/comments'
-        * header Authorization = authToken
-        And request {"comment": {"body": "This is a test comment from Navy-sama"}}
-        When method post
-        Then status 200
-        * def newComment = response.comment
-        * match response.comment.body == "This is a test comment from Navy-sama"
+       * def publishComment = call read('publish_comment.feature') {slug: '#(firstArticleSlug)'} 
 
 
         # Step 7: Verify response schema that should contain posted comment text
-        * match response == 
-        """
-        {
-            "comment": {
-                "id": "#number",
-                "body": "#string",
-                "createdAt": "#string",
-                "updatedAt": "#string",
-                "author": {
-                    "username": "#string",
-                    "bio": "#",
-                    "image": "#string",
-                    "following": "#boolean"
-                }
-            }
-        }
-        """
+        * match publishComment.response == comment_schema
+        * def newComment = publishComment.response.comment
 
         
         # Step 8: Get the list of all comments for this article one more time
-        Given path 'articles/' + firstArticleSlug + '/comments'
-        * header Authorization = authToken
-        When method get
-        Then status 200
-        * def newComments = response.comments
+        * def newCommentsResponse = call read('get_comments.feature')
+        * def newComments = newCommentsResponse.response.comments
 
         
         # Step 9: Verify number of comments increased by 1 (similar like we did with favorite counts)
@@ -184,20 +94,61 @@ Feature: Home Work
 
         
         # Step 10: Make a DELETE request to delete comment
-        Given path 'articles/' + firstArticleSlug + '/comments/' + newComment.id
-        And header Authorization = authToken
-        When method delete
-        Then status 200
+        * def deleteComment = call read('delete_comment.feature') {slug: '#(firstArticleSlug)', id: '#(newComment.id)'} 
 
         
         # Step 11: Get all comments again and verify number of comments decreased by 1
-        Given path 'articles/' + firstArticleSlug + '/comments'
-        * header Authorization = authToken
-        When method get
-        Then status 200
-        * def finalComments = response.comments
+        * def finalCommentsResponse = call read('get_comments.feature')
+        * def finalComments = finalCommentsResponse.response.comments
         * def finalCommentsCount = finalComments.length
         * match finalCommentsCount == newCommentsCount - 1
         * match finalCommentsCount == commentsCount
+
+        # Special Step 12: create four distincts features grouping some steps done earlier and add tags to these features to have two features which necessitate token and 2 features which do not (give representative titles to features)
+
+
+
+        # Special Step 13: Add regex verifications for dates("2024-01-27T21:32:21.056Z")
+        * match firstArticle.createdAt == '#regex \\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z'
+        * match newComment.createdAt == '#regex \\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z'
+
+
+        
+        # Special Step 14: To create comments, use examples with scenario outline
+
+
+        
+        # Special Step 15: Add an after scenario to delete those comments
+
+
+        
+        # Special Step 16: Create a feature to generate a valid token
+
+
+        
+        # Special Step 17: Create a global variable in karate-config for the token
+
+
+        
+        # Special Step 18: Make the feature of step 16 execute and initialize the variable of step 17 when a specific tag is present within the feature run when the tests launched
+
+
+        
+        # Special Step 19: Create a feature with Ztrain api and integrate retry for some of the test steps
+
+
+        
+        # Special Step 20: Run tests by tags and in parallel using the runner
+
+
+        
+        # Special Step 21: Run tests by tags and in parallel using command line
+
+
+        
+        # Special Step 22: Add conditional logic to some feature (par exemple lorsque que l'on contrôle le tableau des favorites faire un if si le tableau est vide lors du match)
+
+
+        
 
         
