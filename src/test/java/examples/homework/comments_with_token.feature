@@ -16,6 +16,7 @@ Feature: Comments Operations With Token
         # Get existing comments count
         * def commentsResponse = call read('get_comments.feature')
         * def initialCommentsCount = commentsResponse.response.comments.length
+        * print 'Initial comments count: ' + initialCommentsCount
         
         # Create a comment
         * def publishComment = call read('publish_comment.feature') {slug: '#(firstArticleSlug)'}
@@ -25,6 +26,7 @@ Feature: Comments Operations With Token
         # Verify comment was added
         * def newCommentsResponse = call read('get_comments.feature')
         * def newCommentsCount = newCommentsResponse.response.comments.length
+        * print 'New comments count: ' + newCommentsCount
         * match newCommentsCount == initialCommentsCount + 1
         
         # Delete the comment

@@ -1,3 +1,4 @@
+    @ignore
 Feature: Ztrain API with Retry Logic
 
     Background:
@@ -5,11 +6,11 @@ Feature: Ztrain API with Retry Logic
         * def random = new Date().getTime()
         * def randomEmail = 'test_' + random + '@example.com'
         * def randomProductName = 'Produit ' + random
+        * configure retry = { count: 3, interval: 1000 }
 
     @ztrain-retry
     Scenario: Create user and product with retry logic
         # Registration with retry
-        * retry 3
         Given path 'user/register'
         And request
         """
@@ -19,11 +20,11 @@ Feature: Ztrain API with Retry Logic
           "password": "TestPassword123!"
         }
         """
+        And retry until responseStatus == 201
         When method post
         Then status 201
 
         # Login with retry
-        * retry 3
         Given path 'auth/login'
         And request
         """
@@ -32,6 +33,7 @@ Feature: Ztrain API with Retry Logic
           "password": "TestPassword123!"
         }
         """
+        And retry until responseStatus == 201
         When method post
         Then status 201
         And match response.token == '#present'
@@ -39,7 +41,7 @@ Feature: Ztrain API with Retry Logic
         * def userId = response.user._id
 
         # Category Creation with retry
-        * retry 2
+        * configure retry = { count: 2, interval: 1000 }
         Given path 'category/create'
         And header Authorization = 'Bearer ' + authToken
         And request
@@ -49,12 +51,12 @@ Feature: Ztrain API with Retry Logic
           "description": "Test Category Description"
         }
         """
+        And retry until responseStatus == 201
         When method post
         Then status 201
         * def categoryId = response._id
 
         # Product Creation with retry
-        * retry 2
         Given path 'product/create'
         And header Authorization = 'Bearer ' + authToken
         And request
@@ -72,6 +74,7 @@ Feature: Ztrain API with Retry Logic
           }
         }
         """
+        And retry until responseStatus == 201
         When method post
         Then status 201
         * def productId = response._id

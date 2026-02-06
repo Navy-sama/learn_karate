@@ -1,3 +1,4 @@
+@ignore
 Feature: Delete Comment
 
     Background: Preconditions

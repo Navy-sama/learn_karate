@@ -1,3 +1,4 @@
+@ignore
 Feature: Comment Articles with Examples
 
     Background: Preconditions

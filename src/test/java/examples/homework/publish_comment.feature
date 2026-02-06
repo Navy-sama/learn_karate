@@ -1,3 +1,4 @@
+@ignore
 Feature: Publish Comment
 
     Background: Preconditions

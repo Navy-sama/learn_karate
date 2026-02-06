@@ -6,7 +6,7 @@ class HomeworkRunner {
     
     @Karate.Test
     Karate testHomework() {
-        return Karate.run("HomeWork").relativeTo(getClass());
+        return Karate.run().relativeTo(getClass());
     }
     
     @Karate.Test
